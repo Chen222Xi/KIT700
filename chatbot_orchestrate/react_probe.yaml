@@ -1,0 +1,9 @@
+spec_version: v1
+name: react_probe
+description: Probe to verify ReAct workflow execution.
+style: react
+llm: watsonx/meta-llama/llama-3-2-90b-vision-instruct
+
+workflow:
+  - say: |
+      [REACT-PROBE] If you see this exact line, ReAct workflow is executing.

@@ -1,0 +1,22 @@
+classifiers:
+  - name: intent_classifier
+    type: llm
+    config:
+      temperature: 0
+      system_prompt_path: prompts/system_intent.md
+      few_shot_path: prompts/fewshot_intent.jsonl
+      output_schema:
+        type: object
+        properties:
+          scores:
+            type: object
+            properties:
+              PUBLIC_QA: { type: number }
+              COURSE_OUTLINE: { type: number }
+              MY_PROFILE: { type: number }
+              MY_ENROLMENTS: { type: number }
+              MY_TIMETABLE: { type: number }
+              LOGIN: { type: number }
+          top_intent: { type: string }
+          explanation: { type: string }
+        required: [scores, top_intent]
