@@ -1,0 +1,51 @@
+spec_version: v1
+name: router_agent
+
+style: react
+llm: watsonx/ibm/granite-3-2-8b-instruct
+
+
+
+description: >
+  Routes user queries to specialized agents (FAQ, Outline, Login, etc.)
+
+
+instructions: >
+  Step 1: Send the user message to intent_agent collaborator to classify intent.
+  Step 2: Read the JSON result:
+    - If intent = PUBLIC_QA → send the original user message to faq_agent
+    - If intent = COURSE_OUTLINE → send to outline_agent
+    - If intent = LOGIN → send to login_agent
+    - If intent = MY_PROFILE → send to profile_agent
+    - If intent = MY_TIMETABLE → send to timetable_agent
+  Step 3: Return ONLY the answer from the collaborator agent.
+
+collaborators:
+  - name: intent_agent
+    agent_id: <intent_agent_id>
+  - name: faq_agent
+    agent_id: <faq_agent_id>
+  - name: outline_agent
+    agent_id: <outline_agent_id>
+  - name: login_agent
+    agent_id: <login_agent_id>
+  - name: profile_agent
+    agent_id: <profile_agent_id>
+  - name: timetable_agent
+    agent_id: <timetable_agent_id>
+
+
+welcome_content:
+  welcome_message: "Hello, I'm Agent. Welcome to watsonx Orchestrate!"
+  description: "This is not default"
+  is_default_message: false 
+
+
+starter_prompts:
+    is_default_prompts: false
+    prompts:
+        - id: "prompt_id_1"
+          title: "Hello1"
+          subtitle: ""
+          prompt: "This is the messages for Hello prompt"
+          state: "active"
