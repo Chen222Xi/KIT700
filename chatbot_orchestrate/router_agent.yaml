@@ -22,26 +22,25 @@ instructions: >
           - PUBLIC_QA      -> send ORIGINAL user message to "FAQ_AskUs"
           - COURSE_OUTLINE -> send to "Outline_new_Yihang_9665h0"
 
-          - LOGIN          -> If username OR password is missing:
-                                • Ask: "What's your username?"
-                                • Then ask: "What's your password?"
-                                • Do NOT call any tool until BOTH fields are provided.
-                              When both are provided:
-                                • Call tool **login_tool** with {username, password}.
-                                • On success: save result.access_token -> session.jwt
-                                  and reply "Login successful."
-                                • Do not store the plaintext password in session or logs.
+          - LOGIN          -> Prefer a non-conversational flow:
+                                • Call tool login_tool immediately.
+                                • Do NOT ask for username/password in chat; let the tool form collect required inputs.
+                                • If the user already provided username/password in the same message, pass them to login_tool directly.
+                                • On success: save result.access_token -> session.jwt and reply "Login successful."
+                                • Never echo or store the plaintext password in session or logs.
 
           - MY_PROFILE     -> reply "Profile is not configured yet. Please try again later."
           - MY_TIMETABLE   -> reply "Timetable is not configured yet. Please try again later."
 
           - If the user says "whoami" or "me":
-              • Call tool **whoami_tool** with access_token = ${session.jwt}
+              • Call tool whoami_tool with access_token = ${session.jwt}
+              • If session.jwt is empty or invalid, reply "Please click Login to sign in first."
               • Return only the username and roles.
 
           If intent is missing/unknown or confidence < 0.5, ask a brief clarifying question.
 
   Step 3: Return ONLY the final answer (no extra wrapper text).
+
 
 
 # 关键：此 CLI 版本的 collaborators 仅接受“已存在的协作者名字”列表

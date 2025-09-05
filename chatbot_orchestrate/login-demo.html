@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Auth Service Login Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { margin: 24px; color: #1f2937; }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; background:#fff; cursor: pointer; }
+    button.primary { background:#2563eb; color:#fff; border-color:#2563eb; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    dialog { border: 0; border-radius: 12px; padding: 16px 16px 12px; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+    label { display:block; font-size:12px; color:#6b7280; margin:8px 0 4px; }
+    input[type="text"], input[type="password"] { width: 280px; padding: 8px 10px; border:1px solid #d1d5db; border-radius:8px; }
+    .pill { padding:4px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; }
+    pre { background:#0b1020; color:#d1d5db; padding:12px; border-radius:8px; overflow:auto; max-height:300px; }
+    .muted { color:#6b7280; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>Login to Auth Service <span class="pill" id="status">signed-out</span></h1>
+
+  <div class="row" style="margin-bottom:12px;">
+    <button id="btnLogin" class="primary">Login</button>
+    <button id="btnWhoami">Who am I</button>
+    <button id="btnCopy">Copy token</button>
+    <button id="btnLogout">Logout</button>
+  </div>
+
+  <div class="muted">AUTH_BASE_URL: <code id="baseUrl"></code></div>
+
+  <h3>Output</h3>
+  <pre id="out">{}</pre>
+
+  <!-- Login dialog -->
+  <dialog id="dlg">
+    <form id="loginForm" method="dialog">
+      <h3 style="margin:0 0 8px">Sign in</h3>
+      <label>Username</label>
+      <input id="username" type="text" autocomplete="username" required value="user" />
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password" required value="pass123" />
+      <div class="row" style="justify-content:flex-end; margin-top:12px;">
+        <button type="button" id="cancel">Cancel</button>
+        <button class="primary" id="submit">Login</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // === 1) 配置：把这里换成你当前的 ngrok 地址 ===
+    const AUTH_BASE_URL = "https://068a09b549a7.ngrok-free.app";
+    document.getElementById('baseUrl').textContent = AUTH_BASE_URL;
+
+    // === 2) 简单状态 ===
+    const $out = document.getElementById('out');
+    const $status = document.getElementById('status');
+    const setStatus = (s) => ($status.textContent = s);
+
+    const getToken = () => sessionStorage.getItem('jwt') || '';
+    const setToken = (t) => { if (t) { sessionStorage.setItem('jwt', t); setStatus('signed-in'); } };
+    const clearToken = () => { sessionStorage.removeItem('jwt'); setStatus('signed-out'); };
+
+    if (getToken()) setStatus('signed-in');
+
+    // === 3) UI refs ===
+    const dlg = document.getElementById('dlg');
+    const form = document.getElementById('loginForm');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnWhoami = document.getElementById('btnWhoami');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnLogout = document.getElementById('btnLogout');
+    const iUser = document.getElementById('username');
+    const iPass = document.getElementById('password');
+
+    // === 4) 事件 ===
+    btnLogin.onclick = () => { iPass.value = ''; dlg.showModal(); iUser.focus(); };
+    document.getElementById('cancel').onclick = () => dlg.close();
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const username = iUser.value.trim();
+      const password = iPass.value; // 明文仅用于传给服务端校验，不会存储
+      try {
+        setStatus('signing-in...');
+        const res = await fetch(`${AUTH_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        setToken(data.access_token);
+        $out.textContent = JSON.stringify({ login: 'ok', token_type: data.token_type, expires_in: data.expires_in }, null, 2);
+        dlg.close();
+      } catch (err) {
+        setStatus('signed-out');
+        $out.textContent = JSON.stringify({ login: 'error', message: String(err) }, null, 2);
+      }
+    };
+
+    btnWhoami.onclick = async () => {
+      const token = getToken();
+      if (!token) { $out.textContent = 'No token. Click Login first.'; return; }
+      try {
+        const res = await fetch(`${AUTH_BASE_URL}/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        $out.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        $out.textContent = JSON.stringify({ whoami: 'error', message: String(err) }, null, 2);
+      }
+    };
+
+    btnCopy.onclick = async () => {
+      const token = getToken();
+      if (!token) { $out.textContent = 'No token to copy.'; return; }
+      await navigator.clipboard.writeText(token);
+      $out.textContent = 'Token copied to clipboard.';
+    };
+
+    btnLogout.onclick = () => { clearToken(); $out.textContent = 'Signed out and token cleared.'; };
+  </script>
+</body>
+</html>
