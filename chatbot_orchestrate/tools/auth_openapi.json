@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Auth Service",
+    "version": "1.0.0",
+    "description": "Login and whoami for UTAS Coursemate (ADK)"
+  },
+  "servers": [
+    { "url": "https://068a09b549a7.ngrok-free.app" }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operationId": "login_tool",
+        "summary": "Login and return access token",
+        "description": "Authenticate with username and password and return a short-lived JWT access token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["access_token"],
+                  "properties": {
+                    "access_token": { "type": "string" },
+                    "token_type": { "type": "string" },
+                    "expires_in": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "invalid credentials" }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "whoami_tool",
+        "summary": "Get current user",
+        "description": "Return the current user information using the provided Bearer token.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "required": ["id", "username"],
+                      "properties": {
+                        "id": { "type": "string" },
+                        "username": { "type": "string" },
+                        "roles": { "type": "array", "items": { "type": "string" } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "missing/invalid token" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  }
+}
