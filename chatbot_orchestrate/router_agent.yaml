@@ -1,51 +1,48 @@
 spec_version: v1
 name: router_agent
-
 style: react
 llm: watsonx/ibm/granite-3-2-8b-instruct
 
-
-
 description: >
-  Routes user queries to specialized agents (FAQ, Outline, Login, etc.)
-
+  Routes user queries to specialized agents (FAQ, Outline, Login, Profile, Timetable).
 
 instructions: >
-  Step 1: Send the user message to intent_agent collaborator to classify intent.
-  Step 2: Read the JSON result:
-    - If intent = PUBLIC_QA → send the original user message to faq_agent
-    - If intent = COURSE_OUTLINE → send to outline_agent
-    - If intent = LOGIN → send to login_agent
-    - If intent = MY_PROFILE → send to profile_agent
-    - If intent = MY_TIMETABLE → send to timetable_agent
-  Step 3: Return ONLY the answer from the collaborator agent.
+  Step 1: Send the user message to the collaborator "intent_agent" to classify intent.
+          Expect JSON: {"intent": "PUBLIC_QA|COURSE_OUTLINE|LOGIN|MY_PROFILE|MY_TIMETABLE", "confidence": 0.0-1.0}
+  Step 2: Route by intent:
+          - PUBLIC_QA       -> send ORIGINAL user message to "faq_agent"
+          - COURSE_OUTLINE  -> send to "outline_agent"
+          - LOGIN           -> send to "login_agent"
+          - MY_PROFILE      -> send to "profile_agent"
+          - MY_TIMETABLE    -> send to "timetable_agent"
+          If missing/unknown or confidence < 0.5, ask a brief clarifying question.
+  Step 3: Return ONLY the collaborator’s final answer.
 
 collaborators:
-  - name: intent_agent
-    agent_id: <intent_agent_id>
-  - name: faq_agent
-    agent_id: <faq_agent_id>
-  - name: outline_agent
-    agent_id: <outline_agent_id>
-  - name: login_agent
-    agent_id: <login_agent_id>
-  - name: profile_agent
-    agent_id: <profile_agent_id>
-  - name: timetable_agent
-    agent_id: <timetable_agent_id>
+  - "intent_test"     # 你截图里那个分类器
+  - "FAQ_AskUs"                   # 示例：填你的 FAQ agent 的“名称”
+  - "Outline_new_Yihang_9665h0"          # 示例：课程大纲 agent 名称
+  # - "login_agent"                 # 示例：登录
+  # - "profile_agent"               # 示例：个人信息
+  # - "Student_Timetable_Leo"       # 课表
+
 
 
 welcome_content:
-  welcome_message: "Hello, I'm Agent. Welcome to watsonx Orchestrate!"
-  description: "This is not default"
-  is_default_message: false 
-
+  welcome_message: "Hello, I'm your UTAS Coursemate!"
+  description: "Ask me about outlines, FAQs, login/profile, or your timetable."
+  is_default_message: false
 
 starter_prompts:
-    is_default_prompts: false
-    prompts:
-        - id: "prompt_id_1"
-          title: "Hello1"
-          subtitle: ""
-          prompt: "This is the messages for Hello prompt"
-          state: "active"
+  is_default_prompts: false
+  prompts:
+    - id: "general_q1"
+      title: "General question"
+      subtitle: "Quick access to AskUs"
+      prompt: "How can I enroll in a new unit?"
+      state: "active"
+    - id: "course_q1"
+      title: "Course outline"
+      subtitle: "What you'll learn"
+      prompt: "What can I learn from KIT700?"
+      state: "active"
