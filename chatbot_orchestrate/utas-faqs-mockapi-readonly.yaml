@@ -1,0 +1,80 @@
+openapi: 3.0.3
+info:
+  title: UTAS FAQs Tool (Read‑only, MockAPI)
+  version: "1.0.2"
+  description: |
+    Read‑only spec for UTAS FAQs hosted on mockapi.io.
+    Exposes only GET operations used by the assistant to search and fetch FAQs.
+servers:
+  - url: https://68b84cdbb71540504327cbc4.mockapi.io/api/v1
+    description: MockAPI project for UTAS FAQs
+paths:
+  /faqs:
+    get:
+      operationId: searchFaqs
+      tags: [FAQs]
+      summary: List or search FAQs
+      description: |
+        Returns FAQ items. Use `search` for keyword search across fields.
+        Use `intent` to fetch an exact FAQ by its intent string.
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Keyword(s) to search in question/answer/other fields.
+          example: timetable exam dates
+        - in: query
+          name: intent
+          schema: { type: string }
+          description: Exact intent value to filter by.
+          example: app_answers_detail_a_id_1946_kw_timetable
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+          description: Pagination page (mockapi.io built-in)
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+          description: Items per page (mockapi.io built-in)
+      responses:
+        "200":
+          description: Array of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FAQItem"
+  /faqs/{id}:
+    get:
+      operationId: getFaqById
+      tags: [FAQs]
+      summary: Get FAQ by numeric id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: FAQ item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQItem"
+components:
+  schemas:
+    FAQItem:
+      type: object
+      properties:
+        id:        { type: string, description: MockAPI-generated ID, example: "1" }
+        intent:    { type: string, example: app_answers_detail_a_id_2481_kw_timetable }
+        question:  { type: string, example: "How do I register for class and see mytimetable?" }
+        answer:    { type: string, example: "In MyTimetable, you can plan, preference and register..." }
+        filename:  { type: string, nullable: true }
+        link:      { type: string, format: uri, nullable: true }
+        topic:     { type: string, nullable: true, example: timetable }
+        course_code: { type: string, nullable: true, example: KIT101 }
+        course_name: { type: string, nullable: true, example: Programming Fundamentals }
+        createdAt: { type: string, format: date-time, nullable: true }
+      required: [intent, question, answer]

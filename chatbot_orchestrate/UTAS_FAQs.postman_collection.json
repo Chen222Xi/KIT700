@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "UTAS FAQs",
+    "_postman_id": "8f0b0a8b-1a1c-4a8e-8c9d-utasfaq",
+    "description": "Test collection for UTAS FAQs on MockAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List FAQs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/faqs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "faqs"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search FAQs (keyword)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/faqs?search=MyTimetable",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "faqs"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "MyTimetable"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get by intent (query)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/faqs?intent=app_answers_detail_a_id_1946_kw_timetable",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "faqs"
+          ],
+          "query": [
+            {
+              "key": "intent",
+              "value": "app_answers_detail_a_id_1946_kw_timetable"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://68b84cdbb71540504327cbc4.mockapi.io/api/v1"
+    }
+  ]
+}
